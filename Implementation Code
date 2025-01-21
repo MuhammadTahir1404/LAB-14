@@ -1,0 +1,105 @@
+import java.util.ArrayList;
+import java.util.List;
+
+// Generic Loan class
+abstract class Loan<T> {
+    private final int loanID;
+    private final T loanAmount;
+
+    public Loan(int loanID, T loanAmount) {
+        this.loanID = loanID;
+        this.loanAmount = loanAmount;
+    }
+
+    public int getLoanID() {
+        return loanID;
+    }
+
+    public T getLoanAmount() {
+        return loanAmount;
+    }
+}
+
+// Mutable Loan class
+class MutableLoan<T> extends Loan<T> {
+    private T loanAmount;
+
+    public MutableLoan(int loanID, T loanAmount) {
+        super(loanID, loanAmount);
+        this.loanAmount = loanAmount;
+    }
+
+    public void setLoanAmount(T loanAmount) {
+        this.loanAmount = loanAmount;
+    }
+
+    @Override
+    public T getLoanAmount() {
+        return loanAmount;
+    }
+}
+
+// Immutable Loan class
+final class ImmutableLoan<T> extends Loan<T> {
+    public ImmutableLoan(int loanID, T loanAmount) {
+        super(loanID, loanAmount);
+    }
+}
+
+// Custom Exception
+class ImmutableLoanModificationException extends RuntimeException {
+    public ImmutableLoanModificationException(String message) {
+        super(message);
+    }
+}
+
+// Abstract Data Type (ADT) for Loan Management
+class LoanManager<T extends Number> {
+    private final List<Loan<T>> loans = new ArrayList<>();
+
+    public void addLoan(Loan<T> loan) {
+        loans.add(loan);
+    }
+
+    public Loan<T> getLoanById(int loanID) {
+        return loans.stream()
+            .filter(loan -> loan.getLoanID() == loanID)
+            .findFirst()
+            .orElse(null);
+    }
+
+    public double calculateTotalLoanAmount() {
+        return loans.stream()
+            .mapToDouble(loan -> loan.getLoanAmount().doubleValue())
+            .sum();
+    }
+}
+
+// Test Cases
+public class LoanManagementSystem {
+    public static void main(String[] args) {
+        // Mutable Loan Example
+        MutableLoan<Double> mutableLoan = new MutableLoan<>(1, 5000.0);
+        System.out.println("Mutable Loan Amount (Before): " + mutableLoan.getLoanAmount());
+        mutableLoan.setLoanAmount(6000.0);
+        System.out.println("Mutable Loan Amount (After): " + mutableLoan.getLoanAmount());
+
+        // Immutable Loan Example
+        ImmutableLoan<Double> immutableLoan = new ImmutableLoan<>(2, 10000.0);
+        System.out.println("Immutable Loan Amount: " + immutableLoan.getLoanAmount());
+
+        // Loan Manager Example
+        LoanManager<Double> loanManager = new LoanManager<>();
+        loanManager.addLoan(mutableLoan);
+        loanManager.addLoan(immutableLoan);
+
+        System.out.println("Total Loan Amount: " + loanManager.calculateTotalLoanAmount());
+
+        // Exception Handling Example
+        try {
+            throw new ImmutableLoanModificationException("Cannot modify an immutable loan!");
+        } catch (ImmutableLoanModificationException e) {
+            System.out.println("Exception Caught: " + e.getMessage());
+        }
+    }
+}
